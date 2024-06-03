@@ -47,7 +47,6 @@ mv ${BASE}/xfms/${SUB}/T2p_coregWarped.nii.gz \
 ${BASE}/T2_preproc/${SUB}/
 
 # Compute structural to standard (mni2009asym - 05mm and 2mm) warp for probtrackx2 and MIST (respectively)
-
 for V in 05mm 2mm; do
 
 antsRegistrationSyN.sh \
