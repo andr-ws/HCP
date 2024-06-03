@@ -2,7 +2,7 @@
 
 BASE=/Users/neuro-239/Desktop/HCP
 
-for DIR in ${BASE}/t1_preproc/m*; do
+for DIR in ${BASE}/T1_preproc/m*; do
 
 SUB=$(basename ${DIR})
 
@@ -13,6 +13,10 @@ mkdir -p ${BASE}/xfms/${SUB}
 for M in T1 T2; do
 
 # T1p is processed T1
+fslreorient2std \
+${BASE}/${M}_preproc/${SUB}/${M}.nii.gz \
+${BASE}/${M}_preproc/${SUB}/${M}p.nii.gz
+
 robustfov \
 -i ${BASE}/${M}_preproc/${SUB}/${M}.nii.gz \
 -r ${BASE}/${M}_preproc/${SUB}/${M}p.nii.gz
@@ -34,10 +38,13 @@ done
 
 antsRegistrationSyN.sh \
 -d 3 \
--f ${BASE}/t1_preproc/${SUB}/T1p.nii.gz \
--m ${BASE}/t2_preproc/T2p.nii.gz \
--o ${BASE}/t2_preproc/T2p_coreg.nii.gz \
+-f ${BASE}/T1_preproc/${SUB}/T1p.nii.gz \
+-m ${BASE}/T2_preproc/${SUB}/T2p.nii.gz \
+-o ${BASE}/T2_preproc/T2p_coreg.nii.gz \
 -t r
+
+mv ${BASE}/xfms/${SUB}/T2p_coregWarped.nii.gz \
+${BASE}/T2_preproc/${SUB}/
 
 # Compute structural to standard (mni2009asym - 05mm and 2mm) warp for probtrackx2 and MIST (respectively)
 
@@ -45,20 +52,20 @@ for V in 05mm 2mm; do
 
 antsRegistrationSyN.sh \
 -d 3 \
--f ${BASE}/MNI/T1_${V}_brain.nii.gz \
--m ${BASE}/t1_preproc/${SUB}/T1p_brain.nii.gz \
--x ${BASE}/MNI/T1_${V}_brain_mask.nii.gz,${BASE}/t1_preproc/${SUB}/T1p_brain_mask.nii.gz \
--o ${BASE}/xfms/${SUB}/${SUB}_${V}
+-f ${BASE}/MNI/MNI152_T1_${V}_brain.nii.gz \
+-m ${BASE}/T1_preproc/${SUB}/T1p_brain.nii.gz \
+-x ${BASE}/MNI/MNI152_T1_${V}_brain_mask.nii.gz,${BASE}/T1_preproc/${SUB}/T1p_brain_mask.nii.gz \
+-o ${BASE}/xfms/${SUB}/${SUB}_${V}_
 
 c3d_affine_tool \
--ref ${BASE}/MNI/T1_${V}_brain.nii.gz \
+-ref ${BASE}/MNI/MNI152_T1_${V}_brain.nii.gz \
 -src ${BASE}/t1_preproc/${SUB}/T1p_brain.nii.gz \
--itk ${BASE}/xfms/${SUB}/${SUB}_${V}0GenericAffine.mat \
+-itk ${BASE}/xfms/${SUB}/${SUB}_${V}_0GenericAffine.mat \
 -ras2fsl \
--o ${BASE}/xfms/${SUB}/t1_2_std_mni_${V}_flirt.mat
+-o ${BASE}/xfms/${SUB}/T1_2_${V}_FSL_affine.mat
 
 c3d \
--mcs ${BASE}/xfms/${SUB}/${SUB}_${V}1Warp.nii.gz \
+-mcs ${BASE}/xfms/${SUB}/${SUB}_${V}_1Warp.nii.gz \
 -oo \
 ${BASE}/xfms/${SUB}/t_wx.nii.gz \
 ${BASE}/xfms/${SUB}/t_wy.nii.gz \
@@ -71,17 +78,17 @@ ${BASE}/xfms/${SUB}/t_wiy.nii.gz
 
 fslmerge \
 -t \
-${BASE}/xfms/${SUB}/t1_std_${V}_warp_fnirt.nii.gz \
+${BASE}/xfms/${SUB}/T1_2_${V}_FSL_nonlinear.nii.gz \
 ${BASE}/xfms/${SUB}/t_wx.nii.gz \
 ${BASE}/xfms/${SUB}/t_wiy.nii.gz \
 ${BASE}/xfms/${SUB}/t_wz.nii.gz
 
 # warp_c for concatenated affine and warp (not sure how this affects things - may be able to use the fnirt warp)
 convertwarp \
---ref=${BASE}/MNI/T1_${V}_brain.nii.gz \
---premat=${BASE}/xfms/${SUB}/t1_2_std_mni_${V}_flirt.mat \
---warp1=${BASE}/xfms/${SUB}/t1_2_std_mni_${V}_fnirt.nii.gz \
---out=${BASE}/xfms/${SUB}/t1_2_std_mni_${V}_warp.nii.gz
+--ref=${BASE}/MNI/MNI152_T1_${V}_brain.nii.gz \
+--premat=${BASE}/xfms/${SUB}/T1_2_${V}_FSL_affine.mat \
+--warp1=${BASE}/xfms/${SUB}/T1_2_${V}_FSL_nonlinear.nii.gz \
+--out=${BASE}/xfms/${SUB}/T1_2_${V}_FSL_warp.nii.gz
 
 # Remove tmp files
 rm ${BASE}/xfms/${SUB}/t_*.nii.gz \
@@ -93,22 +100,24 @@ done
 
 epi_reg \
 --epi=${BASE}/b0_preproc/${SUB}/b0.nii.gz \
---t1=${BASE}/t1_preproc/${SUB}/T1p.nii.gz \
---t1brain=${BASE}/t1_preproc/${SUB}/T1p_brain.nii.gz \
---out=${BASE}/xfms/${SUB}/diff_2_t1
+--t1=${BASE}/T1_preproc/${SUB}/T1p.nii.gz \
+--t1brain=${BASE}/T1_preproc/${SUB}/T1p_brain.nii.gz \
+--out=${BASE}/xfms/${SUB}/d_2_T1
 
 # Compute a diffusion to standard warp (and inverse; only required for 05mm as 2mm is shape analysis)
 
 convertwarp \
---ref=${BASE}/MNI/T1_${V}_brain.nii.gz \
---premat=${BASE}/xfms/${SUB}/diff_2_t1.mat \
---warp1=${BASE}/xfms/${SUB}/t1_2_std_mni_${V}_warp.nii.gz \
---out=${BASE}/xfms/${SUB}/diff_2_std_mni_${V}_warp.nii.gz
+--ref=${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
+--premat=${BASE}/xfms/${SUB}/d_2_T1.mat \
+--warp1=${BASE}/xfms/${SUB}/T1_2_05mm_FSL_warp.nii.gz \
+--out=${BASE}/xfms/${SUB}/d_2_05mm_FSL_warp.nii.gz
 
 invwarp \
 --ref=${BASE}/b0_preproc/${SUB}/b0.nii.gz \
---warp=${BASE}/xfms/${SUB}/diff_2_std_mni_${V}_warp.nii.gz \
---out=${BASE}/xfms/${SUB}/std_mni_${V}_2_diff_warp.nii.gz
+--warp=${BASE}/xfms/${SUB}/d_2_05mm_FSL_warp.nii.gz \
+--out=${BASE}/xfms/${SUB}/05mm_2_d_FSL_warp.nii.gz
+
+rm ${BASE}/xfms/${SUB}/*fast*
 
 done
 
