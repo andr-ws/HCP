@@ -35,15 +35,14 @@ deepbet-cli \
 done
 
 # Coregister T1p & T2p
-
 antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/T1_preproc/${SUB}/T1p.nii.gz \
 -m ${BASE}/T2_preproc/${SUB}/T2p.nii.gz \
--o ${BASE}/T2_preproc/T2p_coreg.nii.gz \
+-o ${BASE}/xfms/${SUB}/${SUB}_T2p_coreg_T1p_ \
 -t r
 
-mv ${BASE}/xfms/${SUB}/T2p_coregWarped.nii.gz \
+mv ${BASE}/xfms/${SUB}/${SUB}_T2p_coreg_T1p_Warped.nii.gz \
 ${BASE}/T2_preproc/${SUB}/
 
 # Compute structural to standard (mni2009asym - 05mm and 2mm) warp for probtrackx2 and MIST (respectively)
