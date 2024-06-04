@@ -7,16 +7,23 @@ BASE=/Users/neuro-239/Desktop/HCP/
 MISTDIR=${BASE}/MIST/
 T1DIR=${BASE}/T1_preproc/
 XFMSDIR=${BASE}/xfms/
-
 mkdir -p ${MISTDIR}model
 touch ${MISTDIR}model/mist_subjects
-echo ${T1DIR}${SUB} >> ${MISTDIR}model/mist_subjects
-A="
-echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","${XFMSDIR}${SUB}/norm/FSL/${SUB}_point2fslaffine.mat"\n"alternate_warp","${XFMSDIR}${SUB}/norm/FSL/point2fslfnirt.nii.gz" >> ${MISTDIR}/mist_filenames
+
+# FSL affine and warp xfms for T1 to 2mm MNI space
+A="_T1_2_2mm_FSL_affine.mat"
+W="_T1_2_2mm_FSL_warp.nii.gz"
+
+for DIR in ${T1DIR}/*
+do
+  echo ${DIR} >> ${MISTDIR}model/mist_subjects
+  echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","${XFMSDIR}${SUB}/norm/FSL/${SUB}${A}"\n"alternate_warp","${XFMSDIR}${SUB}/norm/FSL/${SUB}${W}" >> ${MISTDIR}/mist_filenames
+done
 
 cd ${T1DIR}
 mist_1_train
 mist_2_fit
+cd ${BASE}
 
 # RUN THIS ONCE XFMS DONE SO CAN ASSESS OUTPUT
 
