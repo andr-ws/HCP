@@ -1,15 +1,24 @@
-# Example code for MIST segmentation on HCP data
+#! /bin/bash
 
-mkdir ${BASE}/MIST
+# Code to run MIST segmentation on HCP data
+# Will likely use STN, Striatum and Pallidum segmentations
 
-touch ${BASE}/MIST/mist_subjects
-echo ${BASE}/t1_preproc/${SUB} >> ${BASE}/MIST/mist_subjects
+BASE=/Users/neuro-239/Desktop/HCP/
+MISTDIR=${BASE}/MIST/
+T1DIR=${BASE}/T1_preproc/
+XFMSDIR=${BASE}/xfms/
 
-echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","point2fslaffine.mat"\n"alternate_warp","point2fslfnirt.nii.gz" >> ${BASE}/MIST/mist_filenames
+mkdir -p ${MISTDIR}model
+touch ${MISTDIR}model/mist_subjects
+echo ${T1DIR}${SUB} >> ${MISTDIR}model/mist_subjects
 
-cd ${BASE}/t1_preproc
+echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","${XFMSDIR}${SUB}/point2fslaffine.mat"\n"alternate_warp","${XFMSDIR}${SUB}/point2fslfnirt.nii.gz" >> ${MISTDIR}/mist_filenames
+
+cd ${T1DIR}
 mist_1_train
 mist_2_fit
+
+# RUN THIS ONCE XFMS DONE SO CAN ASSESS OUTPUT
 
 # Example code for probablistic tracking
 
