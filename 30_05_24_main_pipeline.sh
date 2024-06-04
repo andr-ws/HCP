@@ -1,19 +1,22 @@
 # Code to compute HCP warps to MNI152nlin2009b space
+# Performs initial pre-processing steps on raw images
+# ANTs XFM's followed by c3d based conversion to FSL format
 
+# Base directory
 BASE=/Users/neuro-239/Desktop/HCP
 
-for DIR in ${BASE}/T1_preproc/m*; do
+for DIR in ${BASE}/T1_preproc/m*
+do
+  SUB=$(basename ${DIR})
 
-SUB=$(basename ${DIR})
+  mkdir -p ${BASE}/xfms/${SUB}/coreg
 
-mkdir -p ${BASE}/xfms/${SUB}/coreg
+  # Process T1 and T2-weighted modalities
+  for M in T1 T2
+  do
 
-# Process T1 and T2-weighted MRI
-
-for M in T1 T2; do
-
-# T1p is processed T1
-fslreorient2std \
+    # T1p is processed T1
+  fslreorient2std \
 ${BASE}/${M}_preproc/${SUB}/${M}.nii.gz \
 ${BASE}/${M}_preproc/${SUB}/${M}p.nii.gz
 
