@@ -11,8 +11,8 @@ XFMSDIR=${BASE}/xfms/
 mkdir -p ${MISTDIR}model
 touch ${MISTDIR}model/mist_subjects
 echo ${T1DIR}${SUB} >> ${MISTDIR}model/mist_subjects
-
-echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","${XFMSDIR}${SUB}/point2fslaffine.mat"\n"alternate_warp","${XFMSDIR}${SUB}/point2fslfnirt.nii.gz" >> ${MISTDIR}/mist_filenames
+A="
+echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","${XFMSDIR}${SUB}/norm/FSL/${SUB}_point2fslaffine.mat"\n"alternate_warp","${XFMSDIR}${SUB}/norm/FSL/point2fslfnirt.nii.gz" >> ${MISTDIR}/mist_filenames
 
 cd ${T1DIR}
 mist_1_train
