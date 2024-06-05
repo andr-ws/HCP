@@ -10,11 +10,12 @@ B0DIR=${BASE}b0_preproc/
 XFMSDIR=${BASE}xfms/
 MNIDIR=${BASE}MNI/
 
-for DIR in ${T1DIR}/T1_preproc/m*
+for DIR in ${T1DIR}/m*
 do
   SUB=$(basename ${DIR})
   MODS=("T1p" "T2p")
-  mkdir -p ${XFMSDIR}${SUB}/coreg
+  mkdir ${XFMSDIR}${SUB}/coreg/
+  mkdir -p ${XFMSDIR}${SUB}/norm/ANTs ${XFMSDIR}${SUB}/norm/FSL
   i=0
   # Process T1 and T2-weighted modalities
   for M in $T1DIR $T2DIR
@@ -56,7 +57,6 @@ do
   # Compute structural to standard warps (MNI versions 05mm and 2mm) for probtrackx2 and MIST (respectively)
   for V in 05mm 2mm
   do
-    mkdir -p ${XFMSDIR}${SUB}/norm/ANTs ${XFMSDIR}${SUB}/norm/FSL
 
     antsRegistrationSyN.sh \
     -d 3 \
@@ -68,7 +68,7 @@ do
     c3d_affine_tool \
     -ref ${MNIDIR}MNI152_T1_${V}_brain.nii.gz \
     -src ${T1DIR}${SUB}/T1p_brain.nii.gz \
-    -itk ${XFMSDIR}${SUB}/norm/ANTs/${SUB}_${V}_0GenericAffine.mat \
+    -itk ${XF?MSDIR}${SUB}/norm/ANTs/${SUB}_${V}_0GenericAffine.mat \
     -ras2fsl \
     -o ${XFMSDIR}${SUB}/norm/FSL/${SUB}_T1_2_${V}_FSL_affine.mat
     
@@ -100,6 +100,9 @@ do
     --premat=${XFMSDIR}${SUB}/norm/FSL/${SUB}_T1_2_${V}_FSL_affine.mat \
     --warp1=${XFMSDIR}${SUB}/norm/FSL/${SUB}_T1_2_${V}_FSL_nonlinear.nii.gz \
     --out=${XFMSDIR}${SUB}/norm/FSL/${SUB}_T1_2_${V}_FSL_warp.nii.gz
+
+    # Remove intermediate nonlinear XFM (large)
+    rm ${XFMSDIR}${SUB}/norm/FSL/${SUB}_T1_2_${V}_FSL_nonlinear.nii.gz
   done
 
 # Compute a diffusion to structural mapping
