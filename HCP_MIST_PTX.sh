@@ -23,15 +23,13 @@ do
   mkdir -p ${TMPDIR}${SUB}
   ln -s ${XFMSDIR}${SUB}/norm/FSL/${SUB}_${A} ${TMPDIR}${SUB}/${A}
   ln -s ${XFMSDIR}${SUB}/norm/FSL/${SUB}_${W} ${TMPDIR}${SUB}/${W}
-  ln -s ${T1DIR}${SUB}/T1p.nii.gz ${TMPDIR}${SUB}/
-  ln -s ${T1DIR}${SUB}/T1p_brain.nii.gz ${TMPDIR}${SUB}/
-  ln -s ${T2DIR}${SUB}/T2p.nii.gz ${TMPDIR}${SUB}/
+  ln -s ${T1DIR}${SUB}/${SUB}_T1p.nii.gz ${TMPDIR}${SUB}/T1.nii.gz
+  ln -s ${T2DIR}${SUB}/${SUB}_T2p_coreg_T1p_Warped.nii.gz ${TMPDIR}${SUB}/T2.nii.gz
   echo ${TMPDIR}${SUB} >> ${MISTDIR}mist_subjects
 done
 
-echo -e '"T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","T1_2_2mm_FSL_affine.mat"\n"alternate_warp","T1_2_2mm_FSL_warp.nii.gz"' >> ${MISTDIR}/mist_filenames
-
-# If MIST works, then ammend the above for using the brain extracted...
+# If MIST works, then ammend for using the brain extracted...
+echo -e '"T1","T1","T1.nii.gz",1.0\n"T2","T2","T2.nii.gz",1.0\n"alternate_affine","T1_2_2mm_FSL_affine.mat"\n"alternate_warp","T1_2_2mm_FSL_warp.nii.gz"' >> ${MISTDIR}/mist_filenames
 
 cd ${MISTDIR}
 mist_1_train
