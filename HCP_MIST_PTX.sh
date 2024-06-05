@@ -14,7 +14,7 @@ touch ${MISTDIR}model/mist_subjects
 A="_T1_2_2mm_FSL_affine.mat"
 W="_T1_2_2mm_FSL_warp.nii.gz"
 
-for DIR in ${T1DIR}/*
+for DIR in ${T1DIR}*
 do
   echo ${DIR} >> ${MISTDIR}model/mist_subjects
   echo -e "T1","T1","T1p.nii.gz",1.0\n"T2","T2","T2p.nii.gz",1.0\n"alternate_affine","${XFMSDIR}${SUB}/norm/FSL/${SUB}${A}"\n"alternate_warp","${XFMSDIR}${SUB}/norm/FSL/${SUB}${W}" >> ${MISTDIR}/mist_filenames
