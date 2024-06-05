@@ -24,6 +24,7 @@ do
   ln -s ${XFMSDIR}${SUB}/norm/FSL/${SUB}_${A} ${TMPDIR}${SUB}/${A}
   ln -s ${XFMSDIR}${SUB}/norm/FSL/${SUB}_${W} ${TMPDIR}${SUB}/${W}
   ln -s ${T1DIR}${SUB}/${SUB}_T1p.nii.gz ${TMPDIR}${SUB}/T1.nii.gz
+  ln -s ${T1DIR}${SUB}/${SUB}_T1p_brain.nii.gz ${TMPDIR}${SUB}/T1_brain.nii.gz
   ln -s ${T2DIR}${SUB}/${SUB}_T2p_coreg_T1p_Warped.nii.gz ${TMPDIR}${SUB}/T2.nii.gz
   echo ${TMPDIR}${SUB} >> ${MISTDIR}mist_subjects
 done
