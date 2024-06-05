@@ -21,23 +21,23 @@ do
   for M in $T1DIR $T2DIR
   do
     fslreorient2std \
-    ${M}${SUB}/${MODS[i]}.nii.gz \
-    ${M}${SUB}/${MODS[i]}.nii.gz
+    ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz \
+    ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz
 
     robustfov \
-    -i ${M}${SUB}/${MODS[i]}.nii.gz \
-    -r ${M}${SUB}/${MODS[i]}.nii.gz
+    -i ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz \
+    -r ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz
 
     N4BiasFieldCorrection \
     -d 3 \
-    -i ${M}${SUB}/${MODS[i]}.nii.gz \
-    -o ${M}${SUB}/${MODS[i]}.nii.gz
+    -i ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz \
+    -o ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz
 
     # Brain extract N4
     deepbet-cli \
-    --input ${M}${SUB}/${MODS[i]}.nii.gz \
-    --output ${M}${SUB}/${MODS[i]}_brain.nii.gz \
-    --mask ${M}${SUB}/${MODS[i]}_brain_mask.nii.gz
+    --input ${M}${SUB}/${SUB}_${MODS[i]}.nii.gz \
+    --output ${M}${SUB}/${SUB}_${MODS[i]}_brain.nii.gz \
+    --mask ${M}${SUB}/${SUB}_${MODS[i]}_brain_mask.nii.gz
     
     i=$((i+1))
   done
@@ -45,8 +45,8 @@ do
   # Coregister T1p & T2p
   antsRegistrationSyN.sh \
   -d 3 \
-  -f ${T1DIR}${SUB}/T1p.nii.gz \
-  -m ${T2DIR}${SUB}/T2p.nii.gz \
+  -f ${T1DIR}${SUB}/${SUB}_T1p.nii.gz \
+  -m ${T2DIR}${SUB}/${SUB}_T2p.nii.gz \
   -o ${XFMSDIR}${SUB}/coreg/${SUB}_T2p_coreg_T1p_ \
   -t r
   
@@ -61,13 +61,13 @@ do
     antsRegistrationSyN.sh \
     -d 3 \
     -f ${MNIDIR}MNI152_T1_${V}_brain.nii.gz \
-    -m ${T1DIR}${SUB}/T1p_brain.nii.gz \
-    -x ${MNIDIR}MNI152_T1_${V}_brain_mask.nii.gz,${T1DIR}${SUB}/T1p_brain_mask.nii.gz \
+    -m ${T1DIR}${SUB}/${SUB}_T1p_brain.nii.gz \
+    -x ${MNIDIR}MNI152_T1_${V}_brain_mask.nii.gz,${T1DIR}${SUB}/${SUB}_T1p_brain_mask.nii.gz \
     -o ${XFMSDIR}${SUB}/norm/ANTs/${SUB}_${V}_
     
     c3d_affine_tool \
     -ref ${MNIDIR}MNI152_T1_${V}_brain.nii.gz \
-    -src ${T1DIR}${SUB}/T1p_brain.nii.gz \
+    -src ${T1DIR}${SUB}/${SUB}_T1p_brain.nii.gz \
     -itk ${XF?MSDIR}${SUB}/norm/ANTs/${SUB}_${V}_0GenericAffine.mat \
     -ras2fsl \
     -o ${XFMSDIR}${SUB}/norm/FSL/${SUB}_T1_2_${V}_FSL_affine.mat
@@ -108,9 +108,9 @@ do
 # Compute a diffusion to structural mapping
 
   epi_reg \
-  --epi=${B0DIR}${SUB}/b0.nii.gz \
-  --t1=${T1DIR}${SUB}/T1p.nii.gz \
-  --t1brain=${T1DIR}${SUB}/T1p_brain.nii.gz \
+  --epi=${B0DIR}${SUB}/${SUB}_b0.nii.gz \
+  --t1=${T1DIR}${SUB}/${SUB}_T1p.nii.gz \
+  --t1brain=${T1DIR}${SUB}/${SUB}_T1p_brain.nii.gz \
   --out=${XFMSDIR}${SUB}/coreg/${SUB}_d_2_T1
 
     # Remove temporary xfms
@@ -124,7 +124,7 @@ do
   --out=${XFMSDIR}${SUB}/norm/FSL/${SUB}_d_2_05mm_FSL_warp.nii.gz
   
   invwarp \
-  --ref=${B0DIR}${SUB}/b0.nii.gz \
+  --ref=${B0DIR}${SUB}/${SUB}_b0.nii.gz \
   --warp=${XFMSDIR}${SUB}/norm/FSL/${SUB}_d_2_05mm_FSL_warp.nii.gz \
   --out=${XFMSDIR}${SUB}/norm/FSL/${SUB}_05mm_2_d_FSL_warp.nii.gz
 done
