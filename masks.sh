@@ -17,19 +17,9 @@ do
   	mkdir ${DIR}/masks
    	mri_convert ${DIR}/mri/${IMG}.mgz ${FSDIR}/masks/${IMG}.nii.gz
 
-    	# Coreg to T1p prior to xfm (MAYBE SHOULD COREG THE PROCESSED FS T1 
-     	# to T1p first? then apply the same xfms?
-
-     	antsRegistrationSyN \
-      	-d 3 \
-       	-f ${T1DIR}${SUB}/${SUB}_T1p.nii.gz \
-	-m ${FSDIR}/masks/${IMG}.nii.gz \
- 	-t a \ 
- 	-o ${FSDIR}/masks/${IMG}_coreg.nii.gz \
-
 	# Current issue is that when applying the XFM to the FS masks, does not
  	# align. This may be because FS used the unprocessed T1 as input, whereas
-  	# the xfms are using the T1p
+  	# the xfms are using the T1p - rerunning FS with the T1p_brain as input
    
      	antsApplyTransforms \
      	-d 3 \
