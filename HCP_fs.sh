@@ -13,8 +13,14 @@ ls ${T1DIR} | grep ^mgh > ${FSDIR}/sub.txt
 
 for SUB in `cat ${FSDIR}/sub.txt`
 do
-	# ROBUSTFOV and shiz but not intensity norm
-	cp ${T1DIR}${SUB}/${SUB}_T1p.nii.gz ${FSDIR}/${SUB}_T1.nii.gz
+	# Same image space as T1p (but no N4BIASCOR)
+      	fslreorient2std \
+    	${T1DIR}${SUB}/${SUB}_T1.nii.gz \
+    	${FSDIR}${SUB}_T1.nii.gz
+     
+      	robustfov \
+    	-i ${FSDIR}${SUB}_T1.nii.gz \
+    	-r ${FSDIR}${SUB}_T1.nii.gz
 done
 
 # Execute 8 in paralell
