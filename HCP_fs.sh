@@ -13,24 +13,19 @@ ls ${T1DIR} | grep ^mgh > ${FSDIR}/sub.txt
 
 for SUB in `cat ${FSDIR}/sub.txt`
 do
-	cp ${T1DIR}${SUB}/${SUB}_T1p_brain.nii.gz ${FSDIR}/${SUB}_T1.nii.gz
+	# ROBUSTFOV and shiz but not intensity norm
+	cp ${T1DIR}${SUB}/${SUB}_T1p.nii.gz ${FSDIR}/${SUB}_T1.nii.gz
 done
 
 # Execute 8 in paralell
 ls ${FSDIR}*.nii.gz | parallel --jobs 8 recon-all -s {.} -i {} \
--motioncor \
--nonuintensitycor \
--talairach \
--normalization \
--noskullstrip \
--autorecon2 \
--autorecon3 \
+-all \
 -qcache
 
-# Remove T1s
+# Remove FS input files
 rm ${FSDIR}*.nii.gz
 
-# Rename FS dirs
+# Rename FS directories
 for DIR in ${FSDIR}m*.nii
 do
 	SUB=$(basename ${DIR})
