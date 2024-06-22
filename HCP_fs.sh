@@ -13,11 +13,19 @@ ls ${T1DIR} | grep ^mgh > ${FSDIR}/sub.txt
 
 for SUB in `cat ${FSDIR}/sub.txt`
 do
-	cp ${T1DIR}${SUB}/${SUB}_T1p.nii.gz ${FSDIR}/${SUB}_T1.nii.gz
+	cp ${T1DIR}${SUB}/${SUB}_T1p_brain.nii.gz ${FSDIR}/${SUB}_T1.nii.gz
 done
 
 # Execute 8 in paralell
-ls ${FSDIR}*.nii.gz | parallel --jobs 8 recon-all -s {.} -i {} -all -nonuintesnitycor -qcache
+ls ${FSDIR}*.nii.gz | parallel --jobs 8 recon-all -s {.} -i {} \
+-motioncor \
+-nonuintensitycor \
+-talairach \
+-normalization \
+-noskullstrip \
+-autorecon2 \
+-autorecon3 \
+-qcache
 
 # Remove T1s
 rm ${FSDIR}*.nii.gz
