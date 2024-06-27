@@ -37,8 +37,6 @@ mist_1_train
 mist_2_fit
 cd ${BASE}
 
-# 
-
 # RUN THIS ONCE XFMS DONE SO CAN ASSESS OUTPUT
 
 # Example code for probablistic tracking
