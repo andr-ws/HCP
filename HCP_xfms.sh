@@ -128,3 +128,47 @@ do
   --warp=${XFMSDIR}${SUB}/norm/FSL/${SUB}_d_2_05mm_FSL_warp.nii.gz \
   --out=${XFMSDIR}${SUB}/norm/FSL/${SUB}_05mm_2_d_FSL_warp.nii.gz
 done
+
+
+
+
+# Trial code for re-computing ANTs 2 FSL warps for probtrackx2 (MNI_05mm)
+BASE=/Volumes/HD1/HCP
+for DIR in /Volumes/HD1/HCP/xfms/m*
+do
+SUB=$(basename ${DIR})
+
+# Convert ANTs warps to FSL format
+c3d_affine_tool \
+                -ref ${BASE}/MNI/MNI152_05mm_brain.nii.gz \
+                -src ${BASE}/T1_preproc/${SUB}/${SUB}_T1p_brain.nii.gz \
+                -itk ${DIR}/norm/ANTs/${SUB}_05mm_0GenericAffine.mat \
+                -ras2fsl \
+                -o ${DIR}/norm/FSL/${SUB}_T1_2_05mm_FSL_affine.mat
+
+wb_command \
+                -convert-warpfield -from-itk \
+                ${DIR}/norm/ANTs/${SUB}_05mm_1Warp.nii.gz \
+                -to-fnirt \
+                ${DIR}/norm/FSL/${SUB}_T1_2_05mm_FSL_warp.nii.gz \
+                ${BASE}/MNI/MNI152_05mm_brain.nii.gz
+
+convertwarp \
+                --ref=${BASE}/MNI/MNI152_05mm_brain.nii.gz \
+                --premat=${DIR}/norm/FSL/${SUB}_T1_2_05mm_FSL_affine.mat \
+                --warp1=${DIR}/norm/FSL/${SUB}_T1_2_05mm_FSL_warp.nii.gz \
+                --out=${DIR}/norm/FSL/${SUB}_T1_2_05mm_FSL_warp.nii.gz
+
+# Compute a diffusion to standard warp (and inverse; only required for 05mm as 2mm is shape analysis)
+convertwarp \
+                --ref=${BASE}/MNI/MNI152_05mm_brain.nii.gz \
+                --premat=${DIR}/coreg/${SUB}_d_2_T1.mat \
+                --warp1=${DIR}/norm/FSL/${SUB}_T1_2_05mm_FSL_warp.nii.gz \
+                --out=${DIR}/norm/FSL/${SUB}_d_2_05mm_FSL_warp.nii.gz
+  
+invwarp \
+                --ref=${BASE}/b0_preproc/${SUB}/${SUB}_b0.nii.gz \
+                --warp=${DIR}/norm/FSL/${SUB}_d_2_05mm_FSL_warp.nii.gz \
+                --out=${DIR}/norm/FSL/${SUB}_05mm_2_d_FSL_warp.nii.gz
+
+done
