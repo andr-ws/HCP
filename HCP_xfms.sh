@@ -133,10 +133,20 @@ done
 
 
 # Trial code for re-computing ANTs 2 FSL warps for probtrackx2 (MNI_05mm)
+
+# I have run ANTs to obtain XFMS, and these are not provided in the below code.
+# I am trying to run probtrackx2 to compute probablistic tractography in MNI space, example code for one subject is provided at the end.
+# Can you help me work out why my probtrackx2 output is blank?
 BASE=/Volumes/HD1/HCP
 for DIR in /Volumes/HD1/HCP/xfms/m*
 do
 SUB=$(basename ${DIR})
+
+epi_reg \
+--epi=${BASE}/b0_preproc/${SUB}/${SUB}_b0.nii.gz \
+--t1=${BASE}/T1_preproc/${SUB}/${SUB}_T1p.nii.gz \
+--t1brain=${BASE}/T1_preproc/${SUB}/${SUB}_T1p_brain.nii.gz \
+--out=${DIR}/coreg/${SUB}_d_2_T1
 
 # Convert ANTs warps to FSL format
 c3d_affine_tool \
@@ -172,3 +182,16 @@ invwarp \
                 --out=${DIR}/norm/FSL/${SUB}_05mm_2_d_FSL_warp.nii.gz
 
 done
+
+probtrackx2 \
+  -s /Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003.bedpostX/merged \
+  -m /Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003.bedpostX/nodif_brain_mask.nii.gz \
+  -x /Users/neuro-239/Desktop/cerebellum_model/VTA/sub-01/sub-01_lh_vta.nii.gz \
+  -o vta_out --dir=/Users/neuro-239/Desktop/cerebellum_model/VTA/sub-01 \
+  --xfm=/Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003_05mm_2_d_FSL_warp.nii.gz \
+  --invxfm=/Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003_d_2_05mm_FSL_warp.nii.gz \
+  --seedref=/Users/neuro-239/tremor/derivatives/Lead/standard/MNI152_05mm_T1.nii.gz \
+  --modeuler \
+  --opd \
+  --loopcheck \
+  --forcedir
