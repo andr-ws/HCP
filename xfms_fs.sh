@@ -17,22 +17,22 @@ mri_synthstrip \
 # T1p-b0
 antsRegistrationSyN.sh \
 -d 3 \
--f ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
--m ${BASE}/T1_preproc/${SUB}/${SUB}_T1p_brain.nii.gz \
+-f ${BASE}/T1_preproc/${SUB}/${SUB}_T1p_brain.nii.gz \
+-m ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
 -o ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_ \
--t a
+-t r
 
 # T1p-b0 mask
 fslmaths \
-${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
+${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_InverseWarped.nii.gz \
 -bin \
-${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz
+${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_InverseWarped_mask.nii.gz
 
 # T1p-b0-MNI
 antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
--m ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
+-m ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_InverseWarped.nii.gz \
 -o ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_
 
 # T1p_b0-MNI ANTs to FSL affine
