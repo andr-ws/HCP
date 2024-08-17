@@ -64,9 +64,64 @@ invwarp \
                 --ref=${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
                 --warp=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affwarp.nii.gz \
                 --out=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_05mm-T1p-b0_affwarp.nii.gz
+
+##############
+
+# FREESURFER #
+
+##############
+
+  for IMG in aseg orig brainmask
+  do
+    mri_convert \
+	  ${BASE}/FS/${SUB}/${IMG}.mgz \
+	  ${BASE}/FS/${SUB}/${IMG}.nii.gz
+  done
+
+  # Binarise and extract CSF and ventricle masks
+  mri_binarize \
+	  --i ${BASE}/FS/${SUB}/mri/aseg.nii.gz \
+	  --match 4 43 14 15 24 31 63 \
+	  --o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask.nii.gz 
+
+  # Binarise the FS brainmask to use in xfms
+  fslmaths \
+    ${BASE}/FS/${SUB}/brainmask.nii.gz \
+    -bin \
+    ${BASE}/FS/${SUB}/brainmask.nii.gz
+
+# orig-T1p-b0
+  antsRegistrationSyN.sh \
+    -d 3 \
+    -f ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
+    -m ${BASE}/FS/${SUB}/orig.nii.gz \
+    -x ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz,${BASE}/FS/${SUB}/brainmask.nii.gz
+    -o ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_
+    -t a
+
+antsApplyTransforms \
+-d 3 \
+-i ${BASE}/FS/${SUB}/mri/ventricles_csf_mask.nii.gz \
+-r ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_Warped.nii.gz \
+-o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
+-n NearestNeighbor \
+-t ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_0GenericAffine.mat
+
+antsApplyTransforms \
+-d 3 \
+-i ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
+-r ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_Warped.nii.gz \
+-o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_05mm.nii.gz \
+-n Linear \
+-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1Warp.nii.gz \
+-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_0GenericAffine.mat
+
+fslmaths \
+${BASE}/HCP/FS/${SUB}/mri/ventricles_csf_mask-05mm.nii.gz \
+-bin \
+-o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask-05mm.nii.gz
+
 done
-
-
 
 
 
