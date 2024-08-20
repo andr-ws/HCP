@@ -203,14 +203,17 @@ probtrackx2 \
 --os2t
 
 # Not sure what the outputs will look like yet! ^^^
-find_the_biggest ${BASE}/probtrackx2/putamino-cortical/${SUB}/seeds_to_${hemi}_something ... 
+find_the_biggest \
+${BASE}/probtrackx2/putamino-cortical/${SUB}/seeds_to_${SUB}_HMAT_${hemi}*.nii.gz \
+${BASE}/probtrackx2/putamino-cortical/${SUB}/${SUB}_${hemi}_ftb \
 
 
 
 
 
 # The idea here is to then initiate tractography from each parcellation of the putamen to each
-# VTA across all patients
+# VTA across all patients - could do it reverse order and seed from VTA with the ftb file as targets?
+
 # To do this, I will need to xfm each file to MNI space
 # Something like below::::
 
