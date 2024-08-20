@@ -36,21 +36,3 @@ cd ${MISTDIR}
 mist_1_train
 mist_2_fit
 cd ${BASE}
-
-# RUN THIS ONCE XFMS DONE SO CAN ASSESS OUTPUT
-
-# Example code for probablistic tracking
-
-probtrackx2_gpu \
---samples=mgh_1002/mgh_1002.bedpostX/merged \
---mask=mgh_1002/mgh_1002.bedpostX/nodif_brain_mask.nii.gz \
---seed=mgh_1002/masks/l_ppn.nii.gz \
---out=ptx_out \
---targetmasks=mgh_1002/mgh_1002.bedpostX/nodif_brain_mask.nii.gz \
---xfm=mgh_1002/xfms/std2d.nii.gz \
---invxfm=mgh_1002/xfms/d2std.nii.gz \
---seedref=t1.nii.gz \
---modeuler \
---loopcheck \
---opd \
---dir=mgh_1002/probtrackx2/
