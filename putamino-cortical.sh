@@ -52,9 +52,9 @@ do
 			roi_n=${nums[i]}
 
 			fslmaths \
-				${BASE}/atlases/HMAT/segmentations/${SUB}_HMAT_diff.nii.gz \
+				${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_diff.nii.gz \
 				-thr ${roi_n} -uthr ${roi_n} \
-				${BASE}/atlases/HMAT/segmentations/${SUB}_HMAT_${h}_${roi}_mask_diff.nii.gz
+				${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_${h}_${roi}_mask_diff.nii.gz
 		done
 
 		# Write out target files
