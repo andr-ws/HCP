@@ -94,7 +94,7 @@ invwarp \
   antsRegistrationSyN.sh \
     -d 3 \
     -f ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
-    -m ${BASE}/FS/${SUB}/orig.nii.gz \
+    -m ${BASE}/FS/${SUB}/mri/orig.nii.gz \
     -x ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz,${BASE}/FS/${SUB}/brainmask.nii.gz
     -o ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_
     -t a
@@ -123,18 +123,3 @@ ${BASE}/HCP/FS/${SUB}/mri/ventricles_csf_mask-05mm.nii.gz \
 
 done
 
-
-
-
-probtrackx2 \
-  -s /Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003.bedpostX/merged \
-  -m /Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003.bedpostX/nodif_brain_mask.nii.gz \
-  -x /Users/neuro-239/Desktop/cerebellum_model/VTA/sub-01/sub-01_lh_vta.nii.gz \
-  -o vta_out --dir=/Users/neuro-239/Desktop/cerebellum_model/VTA/sub-01 \
-  --xfm=/Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003_05mm_2_d_FSL_warp.nii.gz \
-  --invxfm=/Users/neuro-239/Desktop/cerebellum_model/HCP/mgh_1003/mgh_1003_d_2_05mm_FSL_warp.nii.gz \
-  --seedref=/Users/neuro-239/tremor/derivatives/Lead/standard/MNI152_05mm_T1.nii.gz \
-  --modeuler \
-  --opd \
-  --loopcheck \
-  --forcedir
