@@ -30,14 +30,15 @@ ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
 ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz
 
 # Generate T1p-b0-MNI xfm (warped T1 to MNI)
-# Investigate this output i.r.t diffusion space!
+# ANTs: _Warped is T1p-b0 in 05mm space
+# ANTs: InverseWarped is 05mm in b0 space
 antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
 -m ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
 -o ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_
 
-# Convert T1p_b0-MNI (ANTs to FSL affine)
+# Convert T1p_b0-MNI xfm (ANTs to FSL affine)
 c3d_affine_tool \
 -ref ${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
 -src ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
@@ -45,22 +46,25 @@ c3d_affine_tool \
 -ras2fsl \
 -o ${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affine.mat
 
-# Convert T1p_b0-MNI (ANTs to FSL warp)
+# Convert T1p_b0-MNI xfm (ANTs to FSL warp)
 wb_command \
 -convert-warpfield -from-itk \
 ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1Warp.nii.gz \
 -to-fnirt \
-${DIR}/norm/FSL/${SUB}_T1p-b0-05mm_warp.nii.gz \
+${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_warp.nii.gz \
 ${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz
 
-# Compose T1p_b0-MNI xfms (FSL affine + warp)
+# Compose T1p-b0-MNI xfms (FSL affine + warp)
 convertwarp \
 --ref=${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
 --premat=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affine.mat \
 --warp1=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_warp.nii.gz \
 --out=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affwarp.nii.gz
 
-# Invert MNI-T1p_b0 (FSL affine + warp)
+# Remove the intermediate warp
+rm ${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_warp.nii.gz
+
+# Generate 05mm-T1p-b0 xfm (FSL affine + warp)
 invwarp \
 --ref=${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
 --warp=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affwarp.nii.gz \
@@ -91,17 +95,17 @@ antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
 -m ${BASE}/FS/${SUB}/mri/orig.nii.gz \
--x ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz,${BASE}/FS/${SUB}/brainmask.nii.gz
--o ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_
+-x ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz,${BASE}/FS/${SUB}/brainmask.nii.gz \
+-o ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_ \
 -t a
 
 # Apply orig-T1p-b0 xfm (exclusion mask to b0 space)
 antsApplyTransforms \
 -d 3 \
 -i ${BASE}/FS/${SUB}/mri/ventricles_csf_mask.nii.gz \
--r ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_Warped.nii.gz \
+-r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
 -o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
--n NearestNeighbor \
+-n Linear \
 -t ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_0GenericAffine.mat
 
 # Apply T1p-MNI warp (exclusion mask in MNI space)
@@ -115,17 +119,26 @@ antsApplyTransforms \
 -t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_0GenericAffine.mat
 
 # Binarise exclusion masks
-
 for mask in T1p-b0 05mm
 do
 fslmaths \
-${BASE}/HCP/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz \
+${BASE}/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz \
 -bin \
--o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz
+${BASE}/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz
 done
 
 # Create directory for HMAT (b0 space)
 mkdir -p ${BASE}/atlases/HMAT/segmentations/${SUB}
+
+# Apply MNI-T1p-b0 xfm (HMAT parcellation to b0 space)
+antsApplyTransforms \
+-d 3 \
+-i ${BASE}/atlases/HMAT/MNI/HMAT.nii.gz \
+-r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
+-o ${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_diff.nii.gz \
+-n NearestNeighbor \
+-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1InverseWarp.nii.gz \
+-t [${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_0GenericAffine.mat,1]
 
 # Process hemispheres and handle MIST naming
 for hemi in left right
@@ -144,15 +157,6 @@ antsApplyTransforms \
 -o ${BASE}/MIST/tmp/${SUB}/${SUB}_mist_${h}_putamen_mask_diff.nii.gz \
 -n NearestNeighbor \
 -t ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_0GenericAffine.mat
-
-# Apply MNI-T1p-b0 xfm (HMAT parcellation to b0 space)
-antsApplyTransforms \
--d 3 \
--i ${BASE}/atlases/HMAT/MNI/HMAT.nii.gz \
--r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_InverseWarped.nii.gz \
--o ${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_diff.nii.gz \
--n NearestNeighbor \
--t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1InverseWarp.nii.gz
 
 # Handle HMAT label IDs
 rois=("M1" "S1" "SMA" "PMd" "PMv")
@@ -178,7 +182,6 @@ done
 # Write out target files (probtrackx2 classification)
 find ${BASE}/atlases/HMAT/segmentations/${SUB} -name "m*${h}_*_mask_diff.nii.gz" \
 > ${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_${h}_putamino-cortical_targets.txt
-done
 
 # Create subject probtrack2
 mkdir -p ${BASE}/probtrackx2/putamino-cortical/${SUB}
@@ -187,11 +190,11 @@ mkdir -p ${BASE}/probtrackx2/putamino-cortical/${SUB}
 probtrackx2 \
 -s ${BASE}/bedpost/${SUB}.bedpostX/merged \
 -m ${BASE}/bedpost/${SUB}.bedpostX/nodif_brain_mask.nii.gz \
--x ${BASE}/MIST/tmp/${SUB}/mist_${h}_putamen_mask_diff.nii.gz \
---dir=${BASE}/probtrackx2/putaimno-cortical/${SUB} \
+-x ${BASE}/MIST/tmp/${SUB}/${SUB}_mist_${h}_putamen_mask_diff.nii.gz \
+--dir=${BASE}/probtrackx2/putamino-cortical/${SUB} \
 -o ${SUB}_${h}_putamen.nii.gz \
 --seedref=${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
---avoid=${BASE}/FS/${SUB}/ventricles_csf_mask_T1p-b0.nii.gz \
+--avoid=${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
 --targetmasks=${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_${h}_putamino-cortical_targets.txt \
 --modeuler \
 --opd \
