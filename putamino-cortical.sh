@@ -33,7 +33,7 @@ do
 		-d 3 \
 		-i ${BASE}/atlases/HMAT/MNI/HMAT.nii.gz \
 		-r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_InverseWarped.nii.gz \
-		-o ${BASE}/atlases/HMAT/segmenations/${SUB}/${SUB}_HMAT_diff.nii.gz \
+		-o ${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_diff.nii.gz \
 		-n NearestNeighbor \
 		-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1InverseWarp.nii.gz
 
