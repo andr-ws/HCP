@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# Code for computing ANTs 2 FSL warps for probtrackx2 (d 2 MNI_05mm / MNI_05mm 2 d) 
+# Code for computing xfms to perform putaminal tractography.
 
 # Base directory
 BASE=/Volumes/HD1/HCP
@@ -126,11 +126,89 @@ antsApplyTransforms \
 
 for mask in T1p-b0 05mm
 do
-
 fslmaths \
 ${BASE}/HCP/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz \
 -bin \
 -o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz
-
 done
 
+# Create directory for HMAT (b0 space)
+mkdir -p ${BASE}/atlases/HMAT/segmentations/${SUB}
+
+# Process hemispheres and handle MIST naming
+for hemi in left right
+do
+if [ "$hemi" = "left" ]; then
+h="L"
+elif [ "$hemi" = "right" ]; then
+h="R"
+fi
+
+# Apply T1p-b0 xfm (MIST segmentation to b0 space)
+antsApplyTransforms \
+-d 3 \
+-i ${BASE}/MIST/tmp/${SUB}/mist_${hemi}_putamen_mask.nii.gz \
+-r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
+-o ${BASE}/MIST/tmp/${SUB}/${SUB}_mist_${h}_putamen_mask_diff.nii.gz \
+-n NearestNeighbor \
+-t ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_0GenericAffine.mat
+
+# Apply MNI-T1p-b0 xfm (HMAT parcellation to b0 space)
+antsApplyTransforms \
+-d 3 \
+-i ${BASE}/atlases/HMAT/MNI/HMAT.nii.gz \
+-r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_InverseWarped.nii.gz \
+-o ${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_diff.nii.gz \
+-n NearestNeighbor \
+-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1InverseWarp.nii.gz
+
+# Handle HMAT label IDs
+rois=("M1" "S1" "SMA" "PMd" "PMv")
+if [ "$hemi" = "left" ]; then
+nums=(1 3 5 9 11)
+elif [ "$hemi" = "right" ]; then
+nums=(2 4 6 10 12)
+fi
+
+# Generate individual HMAT cortical parcels
+for i in ${!nums[@]}
+do
+roi=${rois[i]}
+roi_n=${nums[i]}
+
+# Threshold each mask
+fslmaths \
+${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_diff.nii.gz \
+-thr ${roi_n} -uthr ${roi_n} \
+${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_HMAT_${h}_${roi}_mask_diff.nii.gz
+done
+
+# Write out target files (probtrackx2 classification)
+find ${BASE}/atlases/HMAT/segmentations/${SUB} -name "m*${h}_*_mask_diff.nii.gz" \
+> ${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_${h}_putamino-cortical_targets.txt
+done
+
+# Create subject probtrack2
+mkdir -p ${BASE}/probtrackx2/putamino-cortical/${SUB}
+
+# Initiate hemispheric putaminal-HMAT tractography
+probtrackx2 \
+-s ${BASE}/bedpost/${SUB}.bedpostX/merged \
+-m ${BASE}/bedpost/${SUB}.bedpostX/nodif_brain_mask.nii.gz \
+-x ${BASE}/MIST/tmp/${SUB}/mist_${h}_putamen_mask_diff.nii.gz \
+--dir=${BASE}/probtrackx2/putaimno-cortical/${SUB} \
+-o ${SUB}_${h}_putamen.nii.gz \
+--seedref=${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
+--avoid=${BASE}/FS/${SUB}/ventricles_csf_mask_T1p-b0.nii.gz \
+--targetmasks=${BASE}/atlases/HMAT/segmentations/${SUB}/${SUB}_${h}_putamino-cortical_targets.txt \
+--modeuler \
+--opd \
+--forcedir \
+--loopcheck \
+--os2t
+
+# Not sure what the outputs will look like yet! ^^^
+find_the_biggest ${BASE}/probtrackx2/putamino-cortical/${SUB}/seeds_to_${hemi}_something ... 
+
+done # Hemisphere loop
+done # Subject loop
