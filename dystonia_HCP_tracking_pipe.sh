@@ -40,31 +40,41 @@ done # close subject loop
 # Idea here is to loop through all HCP subjects for each DYT subjects VTA (L and R)
 # Just need to think whether I should flip and combine for a single VTA, or run seperately and combine?
 
-for DYT_SUB in ${BASE_DYS}/probtrackx2/s*
+for DYS_SUB in ${BASE_DYS}/probtrackx2/s*
 do
 # Create probtrackx2 directory for dystonia patient
-mkdir -p ${BASE}/probtrackx2/${DYT_SUB}
+mkdir -p ${BASE}/probtrackx2/${DYS_SUB}
 for HEMI in L R
 do
 # Seed each dystonia patients VTA for each HCP subject
 for HCP_SUB in ${BASE_HCP}/xfms/m*
 do
+
+for each seed_region in ${BASE_HCP}/probtrackx2/putamino-cortical/${HCP_SUB}/seed XYZ
+SEED=$(basename ${seed_region})
+SEED=remove extension here
+
 probtrackx2 \
 -s ${BASE_HCP}/${HCP_SUB}/${HCP_SUB}.bedpostX/merged \
 -m ${BASE_HCP}/${HCP_SUB}/${HCP_SUB}.bedpostX/nodif_brain_mask.nii.gz \
--x ${BASE_DYS}/probtrackx2/${DYT_SUB}/${DYT_SUB}_${HEMI}.nii.gz \
---dir=${BASE}/probtrackx2/${DYT_SUB} \
--o ${HCP_SUB}-${HEMI}.nii.gz \
---xfm=${BASE}/xfms/${NORM_SUB}/norm/FSL/${NORM_SUB}_05mm-T1p-b0_affwarp.nii.gz \
-				--invxfm={BASE}/xfms/${NORM_SUB}/norm/FSL/${NORM_SUB}_T1p-b0-05mm_affwarp.nii.gz \
-				--seedref=${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
-				--avoid=${BASE}/FS/${NORM_SUB}/ventricles_csf_mask_05mm.nii.gz \
-				--targetmasks=point/2/targets.txt \
-				--modeuler \
-				--opd \
-				--forcedir \
-				--loopcheck \
-				--os2t
-		done
+-x ${seed_region} \
+
+-o ${SEED}_${HEMI}_05mm.nii.gz \
+
+
+--dir=${BASE_DYS}/probtrackx2/${DYS_SUB} \
+--xfm=${BASE_HCP}/xfms/${HCP_SUB}/norm/FSL/${HCP_SUB}_05mm-T1p-b0_affwarp.nii.gz \
+--invxfm={BASE}/xfms/${NORM_SUB}/norm/FSL/${NORM_SUB}_T1p-b0-05mm_affwarp.nii.gz \
+
+--seedref=${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
+
+--avoid=${BASE}/FS/${NORM_SUB}/ventricles_csf_mask_05mm.nii.gz \
+--targetmasks=point/2/targets.txt \
+--modeuler \
+--opd \
+--forcedir \
+--loopcheck \
+--os2t
+done
 	done
 done
