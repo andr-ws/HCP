@@ -15,7 +15,7 @@ mri_synthstrip \
 -o ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
 -m ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain_mask.nii.gz
 
-# T1p-b0
+# T1p-b0 (Warped = b0 space / Inverse = T1 space)
 antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
@@ -23,13 +23,16 @@ antsRegistrationSyN.sh \
 -o ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_ \
 -t r
 
-# T1p-b0 mask
+# T1p-b0 mask (Generate T1-warped brain mask)
 fslmaths \
 ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
 -bin \
 ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz
 
-# T1p-b0-MNI
+# T1p-b0-MNI (Generate xfm of warped T1 to MNI)
+
+# Investigate this output i.r.t diffusion space!
+
 antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
