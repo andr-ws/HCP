@@ -212,3 +212,12 @@ find_the_biggest ${BASE}/probtrackx2/putamino-cortical/${SUB}/seeds_to_${hemi}_s
 
 done # Hemisphere loop
 done # Subject loop
+
+# The idea here is to then initiate tractography from each parcellation of the putamen to each
+# VTA across all patients
+
+
+
+
+
+
