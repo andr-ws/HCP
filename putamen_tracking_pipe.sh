@@ -66,12 +66,6 @@ invwarp \
 --warp=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affwarp.nii.gz \
 --out=${BASE}/xfms/${SUB}/norm/FSL/${SUB}_05mm-T1p-b0_affwarp.nii.gz
 
-##############
-
-# FREESURFER #
-
-##############
-
 # Convert FreeSurfer files (.mgz to .nii.gz)
 for IMG in aseg orig brainmask
 do
@@ -109,8 +103,6 @@ antsApplyTransforms \
 -o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
 -n NearestNeighbor \
 -t ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_0GenericAffine.mat
-
-# NOT SURE THIS IS NEEDED?
 
 # Apply T1p-MNI warp (exclusion mask in MNI space)
 antsApplyTransforms \
@@ -210,14 +202,29 @@ probtrackx2 \
 # Not sure what the outputs will look like yet! ^^^
 find_the_biggest ${BASE}/probtrackx2/putamino-cortical/${SUB}/seeds_to_${hemi}_something ... 
 
-done # Hemisphere loop
-done # Subject loop
+
+
+
 
 # The idea here is to then initiate tractography from each parcellation of the putamen to each
 # VTA across all patients
+# To do this, I will need to xfm each file to MNI space
+# Something like below::::
 
+for each ROI in XYZ
+do
+# Apply T1p-b0-MNI xfm (MIST segmentation to MNI space)
+antsApplyTransforms \
+-d 3 \
+-i ${BASE}/probtrackx2/putamino-cortical/${SUB}/seed_to_${hemi}_something ... \
+-r ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_Warped.nii.gz \
+-o ${BASE}/probtrackx2/putamino-cortical/${SUB}/seed_to_${hemi}_05mm ... \
+-n NearestNeighbor \
+-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_0GenericAffine.mat \
+-t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1Warp.nii.gz
+done
 
-
-
+done # Hemisphere loop
+done # Subject loop
 
 
