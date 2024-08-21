@@ -2,6 +2,10 @@
 
 # Code for computing xfms to perform putaminal tractography.
 
+export FREESURFER_HOME=/Applications/freesurfer/dev
+source $FREESURFER_HOME/SetUpFreeSurfer.sh
+ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=12
+
 # Base directory
 BASE=/Volumes/HD1/HCP
 
