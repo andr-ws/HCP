@@ -86,7 +86,17 @@ done
 mri_binarize \
 --i ${BASE}/FS/${SUB}/mri/aseg.nii.gz \
 --match 4 43 14 15 24 31 63 \
---o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask.nii.gz 
+--o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask.nii.gz
+
+mri_binarize \
+--i ${BASE}/FS/${SUB}/mri/aseg.nii.gz \
+--match 7 8 \
+--o ${BASE}/FS/${SUB}/mri/L_CB_mask.nii.gz
+
+mri_binarize \
+--i ${BASE}/FS/${SUB}/mri/aseg.nii.gz \
+--match 46 47 \
+--o ${BASE}/FS/${SUB}/mri/R_CB_mask.nii.gz
 
 # Create FreeSurfer'd brainmask (for FreeSurfer to b0 xfm)
 fslmaths \
@@ -103,21 +113,24 @@ antsRegistrationSyN.sh \
 -o ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_ \
 -t a
 
-# Apply orig-T1p-b0 xfm (exclusion mask to b0 space)
+# Apply orig-T1p-b0 xfm (exclusion mask/cerebellum masks to b0 space)
+
+for IMG in ventricles_csf L_CB R_CB
+do
 antsApplyTransforms \
 -d 3 \
--i ${BASE}/FS/${SUB}/mri/ventricles_csf_mask.nii.gz \
+-i ${BASE}/FS/${SUB}/mri/${IMG}_mask.nii.gz \
 -r ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
--o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
+-o ${BASE}/FS/${SUB}/mri/${IMG}_T1p-b0.nii.gz \
 -n Linear \
 -t ${BASE}/xfms/${SUB}/coreg/${SUB}_orig-T1p-b0_0GenericAffine.mat
 
 # Apply T1p-MNI warp (exclusion mask in MNI space)
 antsApplyTransforms \
 -d 3 \
--i ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_T1p-b0.nii.gz \
+-i ${BASE}/FS/${SUB}/mri/${IMG}_mask_T1p-b0.nii.gz \
 -r ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_Warped.nii.gz \
--o ${BASE}/FS/${SUB}/mri/ventricles_csf_mask_05mm.nii.gz \
+-o ${BASE}/FS/${SUB}/mri/${IMG}_mask_05mm.nii.gz \
 -n Linear \
 -t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_1Warp.nii.gz \
 -t ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_0GenericAffine.mat
@@ -126,10 +139,11 @@ antsApplyTransforms \
 for mask in T1p-b0 05mm
 do
 fslmaths \
-${BASE}/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz \
+${BASE}/FS/${SUB}/mri/${IMG}_mask_${mask}.nii.gz \
 -bin \
-${BASE}/FS/${SUB}/mri/ventricles_csf_mask_${mask}.nii.gz
-done
+${BASE}/FS/${SUB}/mri/${IMG}_mask_${mask}.nii.gz
+done # binarise loop
+done # FreeSurfer IMG loop
 
 # Create directory for HMAT (b0 space)
 mkdir -p ${BASE}/atlases/HMAT/segmentations/${SUB}
