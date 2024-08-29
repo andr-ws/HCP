@@ -22,47 +22,6 @@ warp="T1_2_2mm_FSL_warp.nii.gz"
 for dir in ${derivatives}/data/sub-*; do
   sub=$(basename ${dir})
   
-  fslreorient2std \
-  ${rawdata}/${OUTDIR}${SUB}/${SUB}_${IMG}.nii.gz \
-                  ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_${IMG}.nii.gz
-
-    robustfov \
-                  -i ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_${IMG}.nii.gz \
-                  -r ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_${IMG}.nii.gz
-    
-    N4BiasFieldCorrection \
-                  -d 3 \
-                  -i ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_${IMG}.nii.gz \
-                  -o ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_${IMG}_N4.nii.gz
-  done
-
-  # Co-register T1 and T2 images
-  antsRegistrationSyNQuick.sh \
-                  -d 3 \
-                  -f ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T1_N4.nii.gz \
-                  -m ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T2_N4.nii.gz \
-                  -o ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_tmp_T2_N4
-
-  # Rename Co-registered T2
-  mv ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_tmp_T2_N4Warped.nii.gz \
-  ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T2_N4_coreg.nii.gz
-  
-  # Brain extract t1
-  deepbet-cli \
-                  --i ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T1_N4.nii.gz \
-                  --o ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T1_N4_brain.nii.gz \
-                  --mask ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T1_N4_brain_mask.nii.gz
-
-  # Create a scaled T1:T2 image for each patient
-  fslmaths \
-                  ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T1_N4.nii.gz \
-                  -div \
-                  ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T2_N4_coreg.nii.gz \
-                  -mul 100 \
-                  ${MORPHDIR}sites/${OUTDIR}${SUB}/${SUB}_T1_T2_N4_ratio.nii.gz
-
-  rm ${MORPHDIR}sites/${OUTDIR}${SUB}/*tmp*
-  
   # T1w-MNI (MNI152-2mm)
   antsRegistrationSyN.sh \
   -d 3 \
@@ -104,10 +63,12 @@ for dir in ${derivatives}/data/sub-*; do
     # Link bias-corrected T1w/T1w_brain images
     ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w.nii.gz ${tmp_mist-dir}/${sub}/T1.nii.gz
     ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w_brain.nii.gz ${tmp_mist-dir}/${SUB}/T1_brain.nii.gz
-  
-  
-  ln -s ${T2DIR}${SUB}/${SUB}_T2p_coreg_T1p_Warped.nii.gz ${TMPDIR}${SUB}/T2.nii.gz
-  echo ${TMPDIR}${SUB} >> ${MISTDIR}mist_subjects
+    
+    # Link T2w MRI co-registered to T1w
+    ln -s "${dir}/anat/${sub}/${SUB}_desc-bias_cor_T2w_space-T1w.nii.gz" ${tmp_mist-dir}/${sub}/T2.nii.gz
+    
+    # Append subject to subject list
+    echo ${tmp_mist-dir}/${sub} >> ${tmp_mist-dir}/mist_subjects
 done
 
 # Have supplied the T1_brain here but unsure if this may work?
