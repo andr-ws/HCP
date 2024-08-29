@@ -56,23 +56,25 @@ for dir in ${derivatives}/data/sub-*; do
   # Create temporary participant direcs and populate files
   mkdir -p ${tmp_mist-dir}/${sub}
 
-    # Link FSL affine and warps
-    ln -s ${dir}/xfm/norm/FSL/${sub}_T1w-mni_2mm_affine.mat ${tmp_mist-dir}/${sub}/${aff}
-    ln -s ${dir}/xfm/norm/FSL/${sub}_T1w-mni_2mm_affwarp.nii.gz ${tmp_mist-dir}/${sub}/${warp}
+  # Link FSL affine and warps
+  ln -s ${dir}/xfm/norm/FSL/${sub}_T1w-mni_2mm_affine.mat ${tmp_mist-dir}/${sub}/${aff}
+  ln -s ${dir}/xfm/norm/FSL/${sub}_T1w-mni_2mm_affwarp.nii.gz ${tmp_mist-dir}/${sub}/${warp}
 
-    # Link bias-corrected T1w/T1w_brain images
-    ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w.nii.gz ${tmp_mist-dir}/${sub}/T1.nii.gz
-    ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w_brain.nii.gz ${tmp_mist-dir}/${sub}/T1_brain.nii.gz
+  # Link bias-corrected T1w/T1w_brain images
+  ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w.nii.gz ${tmp_mist-dir}/${sub}/T1.nii.gz
+  ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w_brain.nii.gz ${tmp_mist-dir}/${sub}/T1_brain.nii.gz
     
-    # Link T2w MRI co-registered to T1w
-    ln -s "${dir}/anat/${sub}/${sub}_desc-bias_cor_T2w_space-T1w.nii.gz" ${tmp_mist-dir}/${sub}/T2.nii.gz
+  # Link T2w MRI co-registered to T1w
+  ln -s "${dir}/anat/${sub}/${sub}_desc-bias_cor_T2w_space-T1w.nii.gz" ${tmp_mist-dir}/${sub}/T2.nii.gz
     
-    # Append subject to subject list
-    echo ${tmp_mist-dir}/${sub} >> ${tmp_mist-dir}/mist_subjects
+  # Append subject to subject list
+  echo ${tmp_mist-dir}/${sub} >> ${tmp_mist-dir}/mist_subjects
 done
 
 # Have supplied the T1_brain here but unsure if this may work?
 echo -e '"T1","T1","T1_brain.nii.gz",1.0\n"T2","T2","T2.nii.gz",1.0\n"alternate_affine","T1_2_2mm_FSL_affine.mat"\n"alternate_warp","T1_2_2mm_FSL_warp.nii.gz"' >> ${MISTDIR}/mist_filenames
+
+# Execute training and fitting
 
 # cd ${MISTDIR}
 ${tmp_mist-dir}/mist_1_train
