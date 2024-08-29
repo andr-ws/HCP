@@ -19,21 +19,28 @@ find "${derivatives}/data" -type d -name 'sub-*' | sort -V | while read -r dir; 
   # extract subject-id and create directory
   sub=$(basename "${dir}")
 
-  cp "${dir}/anat/${sub}_desc-min_proc_T1w.nii.gz" "${derivatives}/freesurfer/${sub}_T1w.nii.gz"
-  cp "${dir}/anat/${sub}_desc-min_proc_T2w.nii.gz" "${derivatives}/freesurfer/${sub}_T2w.nii.gz"
+  for modality in T1w T2w; do
+    cp "${dir}/anat/${sub}_desc-min_proc_${modality}.nii.gz" "${derivatives}/freesurfer/${sub}_${modality}.nii.gz"
+    gunzip "${derivatives}/freesurfer/${sub}_${modality}.nii.gz"
+  done
+done
 
-  # Execute recon-all for 8 in paralell
-  ls "${derivatives}/freesurfer/*T1w.nii.gz" | parallel --jobs 8 recon-all -s {.} -i {} \
-  -all \
-  -qcache
+# Execute recon-all for 8 in paralell (with T2w)
+ls "${derivatives}/freesurfer/*T1w.nii" | parallel --jobs 8 recon-all -s {.} -i {} \
+-T2 {}/T2w.nii \
+-T2pial \
+-all \
+-qcache
 
-# Remove FreeSurfer input files
+# Remove freesurfer input files
 rm ${BASE}/FS/*.nii.gz
 
-# Rename FreeSurfer directories
-for DIR in ${BASE}/FS/m*.nii
-do
-SUB=$(basename ${DIR})
-SUB=${SUB:0:8}
-mv ${DIR} ${SUB}/
+# Rename freesurfer directories
+find "${derivatives}/data/freesurfer" -type d -name 'sub-*' | sort -V | while read -r dir; do
+  sub=$(basename ${dir})
+
+  # remove the freesurfer extension!
+  not sure how this looks yet!
+
+  mv ${dir} ${sub}/
 done
