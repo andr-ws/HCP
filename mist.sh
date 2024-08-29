@@ -62,10 +62,10 @@ for dir in ${derivatives}/data/sub-*; do
 
     # Link bias-corrected T1w/T1w_brain images
     ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w.nii.gz ${tmp_mist-dir}/${sub}/T1.nii.gz
-    ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w_brain.nii.gz ${tmp_mist-dir}/${SUB}/T1_brain.nii.gz
+    ln -s ${dir}/anat/${sub}_desc-bias_cor_T1w_brain.nii.gz ${tmp_mist-dir}/${sub}/T1_brain.nii.gz
     
     # Link T2w MRI co-registered to T1w
-    ln -s "${dir}/anat/${sub}/${SUB}_desc-bias_cor_T2w_space-T1w.nii.gz" ${tmp_mist-dir}/${sub}/T2.nii.gz
+    ln -s "${dir}/anat/${sub}/${sub}_desc-bias_cor_T2w_space-T1w.nii.gz" ${tmp_mist-dir}/${sub}/T2.nii.gz
     
     # Append subject to subject list
     echo ${tmp_mist-dir}/${sub} >> ${tmp_mist-dir}/mist_subjects
