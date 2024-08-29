@@ -1,31 +1,31 @@
 #! /bin/bash
 
-# HCP recon-all
+# recon-all
 
-BASE=/Users/neuro-239/Desktop/HCP/
+# Base directory structure
+rawdata="${base}/rawdata"
+derivatives="${base}/derivatives"
 
 # Create and export FreeSurfer directory
-mkdir ${BASE}/FS
-export SUBJECTS_DIR=${BASE}/FS
+mkdir "${derivatives}/freesurfer"
+export SUBJECTS_DIR="${derivatives}/freesurfer"
 
 # Generate subject list
-ls ${BASE}/T1_preproc | grep ^mgh > ${BASE}/FS/sub.txt
+ls ${derivatives}/data/sub-* > "${derivatives}/freesurfer/participants.txt"
 
-# Create a T1 in the same space as the T1p (w/o bias correction)
-for SUB in `cat ${BASE}/FS/sub.txt`
-do
-fslreorient2std \
-${BASE}/T1_preproc/${SUB}/${SUB}_T1.nii.gz \
-${BASE}/FS/${SUB}_T1.nii.gz
-robustfov \
--i ${BASE}/FS/${SUB}_T1.nii.gz \
--r ${BASE}/FS/${SUB}_T1.nii.gz
-done
+# Copy a minimally pre-proc T1w MRI into the directory
 
-# Execute recon-all for 8 in paralell
-ls ${BASE}/FS/*.nii.gz | parallel --jobs 8 recon-all -s {.} -i {} \
--all \
--qcache
+find "${derivatives}/data" -type d -name 'sub-*' | sort -V | while read -r dir; do
+  # extract subject-id and create directory
+  sub=$(basename "${dir}")
+
+  cp "${dir}/anat/${sub}_desc-min_proc_T1w.nii.gz" "${derivatives}/freesurfer/${sub}_T1w.nii.gz"
+  cp "${dir}/anat/${sub}_desc-min_proc_T2w.nii.gz" "${derivatives}/freesurfer/${sub}_T2w.nii.gz"
+
+  # Execute recon-all for 8 in paralell
+  ls "${derivatives}/freesurfer/*T1w.nii.gz" | parallel --jobs 8 recon-all -s {.} -i {} \
+  -all \
+  -qcache
 
 # Remove FreeSurfer input files
 rm ${BASE}/FS/*.nii.gz
