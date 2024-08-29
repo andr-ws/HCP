@@ -11,7 +11,7 @@ mni=${global}/MNI
 tmp_mist-dir=${derivatives}/tmp_mist-dir
 mkdir -p ${tmp_mist-dir}
 
-# Create a .txt file containing subject names
+# Create file containing subject names
 touch ${tmp_mist-dir}/mist_subjects
 
 # Define shortcut output names for FSL affine and affwarp xfms.
