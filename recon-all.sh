@@ -1,46 +1,42 @@
 #! /bin/bash
 
-# recon-all
+# Code to process recon-all
 
 # Base directory structure
+base=/Users/neuero-239/Desktop/hcp
 rawdata="${base}/rawdata"
 derivatives="${base}/derivatives"
 
 # Create and export FreeSurfer directory
-mkdir "${derivatives}/freesurfer"
+mkdir -p "${derivatives}/freesurfer"
 export SUBJECTS_DIR="${derivatives}/freesurfer"
 
-# Generate subject list
-ls ${derivatives}/data/sub-* > "${derivatives}/freesurfer/participants.txt"
-
-# Copy a minimally pre-proc T1w MRI into the directory
-
+# Copy a minimally pre-processed T1w MRI into the directory
 find "${derivatives}/data" -type d -name 'sub-*' | sort -V | while read -r dir; do
-  # extract subject-id and create directory
+  # Extract subject-id and create directory
   sub=$(basename "${dir}")
-
+  
+  # Make a subject directory
+  mkdir -p "${SUBJECTS_DIR}/${sub}"
+  
   for modality in T1w T2w; do
-    cp "${dir}/anat/${sub}_desc-min_proc_${modality}.nii.gz" "${derivatives}/freesurfer/${sub}_${modality}.nii.gz"
-    gunzip "${derivatives}/freesurfer/${sub}_${modality}.nii.gz"
+    cp "${dir}/anat/${sub}_desc-min_proc_${modality}.nii.gz" "${SUBJECTS_DIR}/${sub}/${modality}.nii.gz"
+    gunzip "${SUBJECTS_DIR}/${sub}/${modality}.nii.gz"
   done
+
 done
 
-# Execute recon-all for 8 in paralell (with T2w)
-ls "${derivatives}/freesurfer/*T1w.nii" | parallel --jobs 8 recon-all -s {.} -i {} \
--T2 {}/T2w.nii \
+# Execute recon-all for 8 in parallel (with T2w)
+ls "${SUBJECTS_DIR}"/*/*T1w.nii | parallel --jobs 8 recon-all -s {//}_fs -i {} \
+-T2 {//}/T2w.nii \
 -T2pial \
 -all \
 -qcache
 
-# Remove freesurfer input files
-rm ${BASE}/FS/*.nii.gz
+# Overwite original directory with _fs
+for dir in "${SUBJECTS_DIR}"/*_fs; do
+  sub="$(basename ${dir})"
+  new_sub="${sub/_fs/}"
 
-# Rename freesurfer directories
-find "${derivatives}/data/freesurfer" -type d -name 'sub-*' | sort -V | while read -r dir; do
-  sub=$(basename ${dir})
-
-  # remove the freesurfer extension!
-  not sure how this looks yet!
-
-  mv ${dir} ${sub}/
+  mv "${dir}/" "${SUBJECTS_DIR}/${new_sub}/"
 done
