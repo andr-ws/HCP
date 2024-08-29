@@ -74,7 +74,7 @@ done
 # Have supplied the T1_brain here but unsure if this may work?
 echo -e '"T1","T1","T1_brain.nii.gz",1.0\n"T2","T2","T2.nii.gz",1.0\n"alternate_affine","T1_2_2mm_FSL_affine.mat"\n"alternate_warp","T1_2_2mm_FSL_warp.nii.gz"' >> ${MISTDIR}/mist_filenames
 
-cd ${MISTDIR}
-mist_1_train
-mist_2_fit
-cd ${BASE}
+# cd ${MISTDIR}
+${tmp_mist-dir}/mist_1_train
+${tmp_mist-dir}/mist_2_fit
+# cd ${BASE}
