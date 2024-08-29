@@ -3,7 +3,11 @@
 # Code to run MIST segmentation on HCP data
 # Will likely use STN, Striatum and Pallidum segmentations
 
-BASE=/Users/neuro-239/Desktop/HCP/
+base=./Users/neuro-239/Desktop/HCP/
+
+
+
+
 MISTDIR=${BASE}MIST/
 T1DIR=${BASE}T1_preproc/
 XFMSDIR=${BASE}xfms/
@@ -17,9 +21,10 @@ W="T1_2_2mm_FSL_warp.nii.gz"
 # Create a temporary directory to run MIST in
 TMPDIR=${MISTDIR}tmp/
 
-for DIR in ${XFMSDIR}*
-do
-  SUB=$(basename ${DIR})
+# Iterate over each xfm directory
+for dir in ${derivatives}/data/sub-*; do
+  sub=$(basename ${dir})
+  
   mkdir -p ${TMPDIR}${SUB}
   ln -s ${XFMSDIR}${SUB}/norm/FSL/${SUB}_${A} ${TMPDIR}${SUB}/${A}
   ln -s ${XFMSDIR}${SUB}/norm/FSL/${SUB}_${W} ${TMPDIR}${SUB}/${W}
