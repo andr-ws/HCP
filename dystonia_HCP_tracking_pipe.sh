@@ -1,9 +1,11 @@
 #! /bin/bash
 
-BASE=/Volumes/HD1
-BASE_DYS=${BASE}/dystonia/derivatives
-VTA=${BASE_DYS}/lead_modelling/leaddbs/derivatives/leaddbs
-BASE_HCP=${BASE}/HCP
+base=./imaging/datasets/cd
+derivatives=${BASE}/derivatives
+mni=MNI152NLin2009bAsym
+
+# Anatomical landmark:
+
 
 # directional VTAs
 #DVTA=${BASE}/VTA/directional
@@ -11,21 +13,18 @@ BASE_HCP=${BASE}/HCP
 
 # Resample VTAs
 
-for DIR in ${VTA}/s*
-do
-SUB=$(basename ${DIR})
-for HEMI in L R
-do
+for dir in ${derivatives}/leaddbs/s*; do
+sub=$(basename ${dir})
+mkdir -p ${dir}/stimulations/${mni}/study/resampled
 
-mkdir -p ${BASE_DYS}/probtrackx2/${SUB}
-
+for hemisphere in L R; do
 # Resample VTAs to full size
 flirt \
--in ${VTA}/${SUB}/stimulations/MNI152NLin2009bAsym/Study/${SUB}_sim-binary_model-simbio_hemi-${HEMI}.nii \
+-in ${dir}/stimulations/${mni}/study/${sub}_sim-binary_model-simbio_hemi-${hemisphere}.nii \
 -applyxfm \
 -usesqform \
 -ref ${BASE_DYS}/MNI/MNI152_T1_05mm.nii.gz \
--out ${BASE_DYS}/probtrackx2/${SUB}/${SUB}_${HEMI}.nii.gz \
+-out ${dir}/stimulations/${mni}/study/resampled/${sub}_sim-binary_model-simbio_hemi-${hemisphere}.nii.gz \
 -interp nearestneighbour
 
 done # close hemi loop
