@@ -7,40 +7,25 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=12
 
 # Base directory
-BASE=/Volumes/HD1/HCP
+derivatives=/Volumes/HD1/HCP
 
-for DIR in /Volumes/HD1/HCP/xfms/m*
-do
-SUB=$(basename ${DIR})
+for dir in ${derivatives}/dwi/sub-*; do
+sub=$(basename ${dir})
 
-# extract b0 brain
-mri_synthstrip \
--i ${BASE}/b0_preproc/${SUB}/${SUB}_b0.nii.gz \
--o ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
--m ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain_mask.nii.gz
-
-# Coregister T1p to b0 (Warped = b0 space / Inverse = T1 space)
+# Coregister T1w and b0
 antsRegistrationSyN.sh \
 -d 3 \
--f ${BASE}/b0_preproc/${SUB}/${SUB}_b0_brain.nii.gz \
--m ${BASE}/T1_preproc/${SUB}/${SUB}_T1p_brain.nii.gz \
--o ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_ \
+-f ${derivatives}/anat/${sub}/${sub}_T1w_brain.nii.gz \
+-m ${derivatives}/dwi/${sub}/${sub}_eddy_b0_brain.nii.gz \
+-o ${derivatives}/xfms/${sub}/${sub}_b0-T1w_ \
 -t r
 
-# Generate T1p-b0 mask (T1-warped brain mask)
-fslmaths \
-${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
--bin \
-${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped_mask.nii.gz
-
-# Generate T1p-b0-MNI xfm (warped T1 to MNI)
-# ANTs: _Warped is T1p-b0 in 05mm space
-# ANTs: InverseWarped is 05mm in b0 space
+# Generate T1w-MNI xfm
 antsRegistrationSyN.sh \
 -d 3 \
 -f ${BASE}/MNI/MNI152_T1_05mm_brain.nii.gz \
--m ${BASE}/xfms/${SUB}/coreg/${SUB}_T1p-b0_Warped.nii.gz \
--o ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_
+-m ${BASE}/xfms/${sub}/${sub}_T1w_brain.nii.gz \
+-o ${BASE}/xfms/${sub}/${sub}_T1w_to_MNI_05mm_
 
 # Convert T1p_b0-MNI xfm (ANTs to FSL affine)
 c3d_affine_tool \
@@ -49,6 +34,9 @@ c3d_affine_tool \
 -itk ${BASE}/xfms/${SUB}/norm/ANTs/${SUB}_T1p-b0-05mm_0GenericAffine.mat \
 -ras2fsl \
 -o ${BASE}/xfms/${SUB}/norm/FSL/${SUB}_T1p-b0-05mm_affine.mat
+
+# Invert
+convert_xfm -omat B2A.mat -inverse A2B.mat
 
 # Convert T1p_b0-MNI xfm (ANTs to FSL warp)
 wb_command \
